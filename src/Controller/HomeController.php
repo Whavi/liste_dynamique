@@ -23,73 +23,67 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(Request $request): Response
+    public function index(Request $request, PaysRepository $paysRepository, VilleRepository $villeRepository): Response
     {
-       $form = $this->createFormBuilder(['Age' => 12])
-                                      
-        ->add("Name", TextType::class, [
-            'constraints' => [new NotBlank(['message' => 'Please enter your name.']),
-        ]])
+        $form = $this->createFormBuilder(['Pays' => $paysRepository->find(2)])
 
-        ->add(("Age"), IntegerType::class)
+            ->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($villeRepository) {
+                $pays = $event->getData()['Pays'] ?? null;
 
+                $villes = $pays === null ? [] : $villeRepository->findByPays($pays, ['name' => 'ASC']);
 
-        ->add("Pays", EntityType::class, [
-            'placeholder' => "Choissiez un pays",
-            'class' => Pays::class,
-            'choice_label' => fn(Pays $pays) => $pays->getName(),   
-            'query_builder' => fn(PaysRepository $paysRepository) => $paysRepository->createQueryBuilder("p")->orderBy('p.name', 'ASC'),
-            'constraints' => new NotBlank(['message' => 'Please enter your country.']),
-        ])
+                $event->getForm()->add("Ville", EntityType::class, [
+                    'placeholder' => "Choissiez une ville",
+                    'class' => Ville::class,
+                    'disabled' => $pays === null,
+                    'choice_label' => 'name',
+                    'choices' => $villes,
+                    'constraints' => new NotBlank(['message' => 'Veuillez choisir une ville.']),
 
-
-        ->add("Ville", EntityType::class, [
-            'placeholder' => "Choissiez une ville",
-            'class' => Ville::class,
-            //'disabled' => 'true',
-            'choice_label' => fn(Ville $villes) => $villes->getName(), 
-            'query_builder' => fn(VilleRepository $villeRepository) => $villeRepository->createQueryBuilder("v")->orderBy('v.name', 'ASC'),
-            'constraints' => new NotBlank(['message' => 'Please enter your city.']),
-
-
-        ])
-        ->add("Message", TextareaType::class, [
-            'constraints' => [new NotBlank (['message' => 'Please enter your message.']),
-                             new Length(['min' => 5]),
-        ]])
-
-        ->add("Debut_du_pret", DateType::class,[
-            'widget' => 'single_text',
-            'constraints' => new NotBlank(['message' => 'Please enter datetime.']),
-        ])
-        ->add("Fin_du_pret", DateType::class,[
-            'widget' => 'single_text',
-            'constraints' => new NotBlank(['message' => 'Please enter datetime.']),
-        ])
-
-
-        ->addEventListener(FormEvents::POST_SET_DATA, function(FormEvent $event){
-            $age = $event->getData()['Age'] ?? null;
-            $event->setData(['Age' => $age - 4 ]);
-
-            if ($age == ! null && $age > 18 ){
-                $event->getForm()->add("Departement", TextType::class, [
-                    'constraints' => new Length(['max' => 5, "min" => 5]),
                 ]);
-                $event->getForm()->remove("Message");
+            })
 
-            }
-        })
-    
-        ->getForm()
-        ;
-        
+
+            ->add("Name", TextType::class, [
+                'constraints' => [new NotBlank(['message' => 'Please enter your name.']),]
+            ])
+
+            ->add(("Age"), IntegerType::class)
+
+            ->add("Pays", EntityType::class, [
+                'placeholder' => "Choissiez un pays",
+                'class' => Pays::class,
+                'choice_label' => fn (Pays $pays) => $pays->getName(),
+                'query_builder' => fn (PaysRepository $paysRepository) => $paysRepository->createQueryBuilder("p")->orderBy('p.name', 'ASC'),
+                'constraints' => new NotBlank(['message' => 'Please enter your country.']),
+            ])
+
+
+            ->add("Message", TextareaType::class, [
+                'constraints' => [
+                    new NotBlank(['message' => 'Please enter your message.']),
+                    new Length(['min' => 5]),
+                ]
+            ])
+
+            ->add("Debut_du_pret", DateType::class, [
+                'widget' => 'single_text',
+                'constraints' => new NotBlank(['message' => 'Please enter datetime.']),
+            ])
+
+            ->add("Fin_du_pret", DateType::class, [
+                'widget' => 'single_text',
+                'constraints' => new NotBlank(['message' => 'Please enter datetime.']),
+            ])
+
+            ->getForm();
+
         $form->handleRequest($request);
 
-        if($form->isSubmitted()&& $form->isValid()){
+        if ($form->isSubmitted() && $form->isValid()) {
             dd("Formulaire Valide");
         }
-        
+
         return $this->renderForm('home.html.twig', compact('form'));
     }
 }

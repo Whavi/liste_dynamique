@@ -8,7 +8,14 @@
             <h1 class="display-2 my-5 text-center"> Une liste dynamique pour pays </h1>
 
             {{form_start(form)}}
-                {{form_widget(form)}}
+                {{form_row(form.Name)}}
+                {{form_row(form.Pays)}}
+                {{form_row(form.Ville)}}
+                {{form_row(form.Age)}}
+                {{form_row(form.Debut_du_pret)}}
+                {{form_row(form.Fin_du_pret)}}
+                {{form_row(form.Message)}}
+
 
         <button type="submit" class="btn btn-primary w-100"> Send </button>
      
