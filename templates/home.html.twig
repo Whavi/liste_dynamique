@@ -1,0 +1,19 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %} Bonjour c'est un site ou tu vas pouvoir faire une liste dynamique {% endblock %}
+
+{% block body %}
+    <div class ="row">    
+        <div class ="col-6 mx-auto">
+            <h1 class="display-2 my-5 text-center"> Une liste dynamique pour pays </h1>
+
+            {{form_start(form)}}
+                {{form_widget(form)}}
+
+        <button type="submit" class="btn btn-primary w-100"> Send </button>
+     
+            {{form_end(form)}}
+        </div>
+    </div>         
+       
+{% endblock %}
